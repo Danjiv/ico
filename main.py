@@ -3,11 +3,12 @@ import numpy as np
 import xpress as xp
 import preprocessing
 from UCWLP_subproblem_model import UCWLP_subproblem_model
+from UCWLP_model import UCWLP_model
 
 
 def main():
 
-   filename = "cap102"
+   filename = "cap61"
 
    supply_cost_df, capacity, fixed_cost, demand, n_customers, n_warehouses = preprocessing.read_in_input_data(filename)
 
@@ -50,11 +51,21 @@ def main():
 
       if sum(capacity_of_warehouses_opened) > sum(demand):
          print("Can serve customer demand from the warehouses opened in the solution to the subproblem")
-         print(f"Total demand: {sum(demand)}  Capacity: {sum(capacity_of_warehouses_opened)}")
+         objective_function_val_feasible, x_feasible, y_feasible = UCWLP_model(supply_cost_df, capacity, fixed_cost,
+                                                                               demand, n_customers, n_warehouses,
+                                                                               capacity_met=True, open = y)
+         print(f"Lagrangian obj val: {objective_function_val}    Feasible val: {objective_function_val_feasible}")
       else:
          print("Cannot meet customer demand from the warehouses opened in the solution to the subproblem")
-         print(f"Total demand: {sum(demand)}  Capacity: {sum(capacity_of_warehouses_opened)}")
-         
+         print("Repairing solution...")
+         objective_function_val_feasible, x_feasible, y_feasible = UCWLP_model(supply_cost_df, capacity, fixed_cost,
+                                                                               demand, n_customers, n_warehouses,
+                                                                               capacity_met=False, open = y)
+         print(f"Lagrangian obj val: {objective_function_val}    Feasible val: {objective_function_val_feasible}")
+      print("Warehouses opened in Lagrangian solution...")
+      print(y)
+      print("Warehouses opened in feasible solution...")
+      print(y_feasible)
    
       #x_df = pd.DataFrame(data = x, index = range(n_customers))
       #x_df.to_csv("checking_assignment.csv")   
