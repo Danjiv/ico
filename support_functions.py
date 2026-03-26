@@ -70,7 +70,7 @@ def repair_solution(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cos
 
 
 
-def test_lambdas(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cost: list[int],
+def test_lambdas1(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cost: list[int],
                     demand: list[int], n_customers: int, n_warehouses: int) -> list[float]: 
       """
       Idea is to test lambda values to pick a 'good' vector to start with
@@ -93,3 +93,18 @@ def test_lambdas(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cost: 
       max_lambda = lambda_vals[objective_function_lambda_vals.index(max_val)]
 
       return max_lambda
+
+
+def test_lambdas(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cost: list[int],
+                    demand: list[int], n_customers: int, n_warehouses: int) -> list[float]: 
+    """
+    Idea is to test lambda values to pick a 'good' vector to start with
+    """
+
+    supply_cost_array = supply_cost_df.to_numpy()
+
+    min_supply_cost = np.min(supply_cost_array, axis=1)
+    
+    
+
+    return min_supply_cost
