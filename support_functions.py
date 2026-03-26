@@ -104,7 +104,11 @@ def test_lambdas(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cost: 
     supply_cost_array = supply_cost_df.to_numpy()
 
     min_supply_cost = np.min(supply_cost_array, axis=1)
+
+    max_supply_cost = np.max(supply_cost_array, axis=1)
+
+    delta = (max_supply_cost - min_supply_cost)/44
     
     
 
-    return min_supply_cost
+    return min_supply_cost + delta
