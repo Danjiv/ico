@@ -20,19 +20,12 @@ def main():
    else:
 
       print(f"Processing file {filename}...")
+
       print("Testing for a good initial value for lambdas...")
-      max_lambda = test_lambdas(supply_cost_df, capacity, fixed_cost,
+      max_lambdas = test_lambdas(supply_cost_df, capacity, fixed_cost,
                                 demand, n_customers, n_warehouses)
 
-      # try a bunch of initial lambda vectors and select the maximum value to start with
-
-      #print(f"Starting with a lambda vector with all entries equal to {max_lambda}")
-
-      #set_initial_lambdas = [max_lambda for i in range(n_customers)]
-
-      print(f"Starting with a lambda vector {max_lambda}")
-
-      set_initial_lambdas = max_lambda
+      print(f"Starting with a lambda vector {max_lambdas}")
 
       # Get the LP relaxation of the MIP, and test to see if the solution is feasible for the MIP
 
@@ -46,7 +39,7 @@ def main():
          # check if the integrality property holds!
          objective_function_val, x, y = UCWLP_subproblem_model(supply_cost_df, capacity, fixed_cost,
                                                                demand, n_customers, n_warehouses,
-                                                               lambdas = set_initial_lambdas)
+                                                               lambdas = max_lambdas)
          capacity_of_warehouses_opened = [c for c, open in zip(capacity, y) if open == 1]
 
          if sum(capacity_of_warehouses_opened) > sum(demand):

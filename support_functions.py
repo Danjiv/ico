@@ -96,7 +96,7 @@ def test_lambdas1(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cost:
 
 
 def test_lambdas(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cost: list[int],
-                    demand: list[int], n_customers: int, n_warehouses: int) -> list[float]: 
+                    demand: list[int], n_customers: int, n_warehouses: int) -> np.array: 
     """
     Idea is to test lambda values to pick a 'good' vector to start with
     """
@@ -107,8 +107,18 @@ def test_lambdas(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cost: 
 
     max_supply_cost = np.max(supply_cost_array, axis=1)
 
-    delta = (max_supply_cost - min_supply_cost)/44
-    
-    
+    obj_vals = []
+    delta = []
 
-    return min_supply_cost + delta
+    for i in range(200):
+        test_lambdas = min_supply_cost + (max_supply_cost - min_supply_cost)/(i+1)
+        objective_function_val, x, y = UCWLP_subproblem_model(supply_cost_df, capacity, fixed_cost,
+                                                               demand, n_customers, n_warehouses,
+                                                               lambdas = test_lambdas)
+        delta.append(i+1)
+        obj_vals.append(objective_function_val)
+
+    max_val = max(obj_vals)
+    max_delta = delta[obj_vals.index(max_val)]
+
+    return min_supply_cost + (max_supply_cost-min_supply_cost)/max_delta
