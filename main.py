@@ -5,7 +5,7 @@ import preprocessing
 from UCWLP_subproblem_model import UCWLP_subproblem_model
 from UCWLP_model import UCWLP_model
 from UCWLP_model_LP_relaxation import UCWLP_model_LP_relaxation
-from support_functions import is_capacity_met, check_if_solution_is_feasible, repair_solution, test_lambdas
+from support_functions import check_if_solution_is_feasible, test_lambdas, solve_lagrangian_dual
 
 
 def main():
@@ -21,51 +21,39 @@ def main():
 
       print(f"Processing file {filename}...")
 
-      print("Testing for a good initial value for lambdas...")
-      max_lambdas = test_lambdas(supply_cost_df, capacity, fixed_cost,
-                                demand, n_customers, n_warehouses)
-
-      print(f"Starting with a lambda vector {max_lambdas}")
-
+      
       # Get the LP relaxation of the MIP, and test to see if the solution is feasible for the MIP
 
       lp_objective_function_value, lp_x, lp_y = UCWLP_model_LP_relaxation(supply_cost_df, capacity, fixed_cost,
                                                                           demand, n_customers, n_warehouses)
-      
+
       if check_if_solution_is_feasible(lp_x, lp_y, demand, capacity):
          print(f"Feasible solution for {filename} from the LP relaxation")
-         # need a bit here to print off results
+
       else:
-         # check if the integrality property holds!
-         objective_function_val, x, y = UCWLP_subproblem_model(supply_cost_df, capacity, fixed_cost,
-                                                               demand, n_customers, n_warehouses,
-                                                               lambdas = max_lambdas)
-         capacity_of_warehouses_opened = [c for c, open in zip(capacity, y) if open == 1]
 
-         if sum(capacity_of_warehouses_opened) > sum(demand):
-            print("Can serve customer demand from the warehouses opened in the solution to the subproblem")
-            objective_function_val_feasible, x_feasible, y_feasible = UCWLP_model(supply_cost_df, capacity, fixed_cost,
-                                                                               demand, n_customers, n_warehouses,
-                                                                               capacity_met=True, open = y)
+         print("Testing for a good initial value for lambdas...")
+         max_lambdas, max_obj_val = test_lambdas(supply_cost_df, capacity, fixed_cost,
+                                                 demand, n_customers, n_warehouses)
+
+
+         # look to see if the lp relaxation objective function value is >= the best found UB for the lagrangian subproblem
+         # as an indication of whether the integrality property holds
+
+         if max_obj_val <= lp_objective_function_value:
+            print("Unclear if the integrality property holds")
+
          else:
-            print("Cannot meet customer demand from the warehouses opened in the solution to the subproblem")
-            print("Repairing solution...")
-            objective_function_val_feasible, x_feasible, y_feasible = UCWLP_model(supply_cost_df, capacity, fixed_cost,
-                                                                               demand, n_customers, n_warehouses,
-                                                                               capacity_met=False, open = y)
-         print(f"LP relaxation obj val: {lp_objective_function_value}  Lagrangian obj val: {objective_function_val}    Feasible val: {objective_function_val_feasible}")
-         print("Warehouses opened in the LP relaxation...")
-         print(lp_y)
-         print("Warehouses opened in Lagrangian solution...")
-         print(y)
-         print("Warehouses opened in feasible solution...")
-         print(y_feasible)
-   
-         x_feasible_df = pd.DataFrame(data = x_feasible, index = range(n_customers))
-         x_feasible_df.to_csv("checking_assignment.csv")   
-         #print(y)
-         #print(y==1)
-
+            print("The integrality property does not hold. Continuing to find a solution using the lagrangian...")
+            dual_obj_val, dual_x, dual_y, feasible_obj_val, feasible_x, feasible_y = solve_lagrangian_dual(supply_cost_df, capacity, fixed_cost,
+                                                                                                           demand, n_customers, n_warehouses,
+                                                                                                           max_lambdas)
+            
+            print(f"LP relaxation obj: {lp_objective_function_value}  Dual obj: {dual_obj_val}  Feasible obj: {feasible_obj_val}")
+            print("Warehouses opened in Lagrangian solution...")
+            print(dual_y)
+            print("Warehouses opened in feasible solution")
+            print(feasible_y)
    
 
 if __name__ == "__main__":
