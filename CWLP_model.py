@@ -4,7 +4,7 @@ import pandas as pd
 from typing import Tuple
 
 
-def UCWLP_model(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cost: list[int],
+def CWLP_model(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cost: list[int],
                 demand: list[int], n_customers: int, n_warehouses: int, capacity_met: bool, open: list[int]) -> Tuple[float, np.array, np.array]:
     
     """
@@ -23,7 +23,7 @@ def UCWLP_model(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cost: l
 
     # ===================================================================================
 
-    prob = xp.problem("UCWLP")
+    prob = xp.problem("CWLP")
 
     xp.setOutputEnabled(False)
     # prob.controls.maxtime = -300

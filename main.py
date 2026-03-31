@@ -2,9 +2,9 @@ import pandas as pd
 import numpy as np
 import xpress as xp
 import preprocessing
-from UCWLP_subproblem_model import UCWLP_subproblem_model
-from UCWLP_model import UCWLP_model
-from UCWLP_model_LP_relaxation import UCWLP_model_LP_relaxation
+from CWLP_subproblem_model import CWLP_subproblem_model
+from CWLP_model import CWLP_model
+from CWLP_model_LP_relaxation import CWLP_model_LP_relaxation
 from support_functions import check_if_solution_is_feasible, test_lambdas, solve_lagrangian_dual
 
 
@@ -24,11 +24,12 @@ def main():
       
       # Get the LP relaxation of the MIP, and test to see if the solution is feasible for the MIP
 
-      lp_objective_function_value, lp_x, lp_y = UCWLP_model_LP_relaxation(supply_cost_df, capacity, fixed_cost,
+      lp_objective_function_value, lp_x, lp_y = CWLP_model_LP_relaxation(supply_cost_df, capacity, fixed_cost,
                                                                           demand, n_customers, n_warehouses)
 
       if check_if_solution_is_feasible(lp_x, lp_y, demand, capacity):
          print(f"Feasible solution for {filename} from the LP relaxation")
+         print(f"LP relaxation obj: {lp_objective_function_value}")
 
       else:
 
