@@ -15,7 +15,8 @@ def main():
 
    filenames = ["cap61", "cap62", "cap71", "cap72", "cap81", "cap82", "cap101", "cap102"]
    range_lambdas_options = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-   alpha_halves = [2, 4, 6, 8, 10]
+   alpha_halves = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+
 
    results_dict = {"filename": [],
                    "range_lambdas": [],
@@ -64,6 +65,14 @@ def main():
 
                   if max_obj_val <= lp_objective_function_value:
                      print("Unclear if the integrality property holds")
+                     results_dict["filename"].append(filename)
+                     results_dict["range_lambdas"].append(range_lambdas)
+                     results_dict["alpha_half"].append(alpha_half)
+                     results_dict["run_time"].append(time.time() - start_time)
+                     results_dict["best_feasible_obj"].append(0)
+                     results_dict["best_lb"].append(0)
+                     results_dict["number_lagrangian_iterations"].append(0)
+                     results_dict["what_stopped_lagrangian"].append("unclear if the intergrality property holds")
 
                   else:
                      print("The integrality property does not hold. Continuing to find a solution using the lagrangian...")
