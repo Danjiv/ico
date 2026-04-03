@@ -11,7 +11,7 @@ import time
 
 def main():
 
-   best_lambda = True
+   best_lambda = False
 
    filenames = ["cap61", "cap62", "cap71", "cap72", "cap81", "cap82", "cap101", "cap102"]
    range_lambdas_options = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
@@ -57,7 +57,8 @@ def main():
 
                   print("Testing for a good initial value for lambdas...")
                   max_lambdas, max_obj_val = test_lambdas(supply_cost_df, capacity, fixed_cost,
-                                                         demand, n_customers, n_warehouses, range_lambdas)
+                                                         demand, n_customers, n_warehouses, range_lambdas, best_lambda,
+                                                         lp_objective_function_value)
 
 
                   # look to see if the lp relaxation objective function value is >= the best found UB for the lagrangian subproblem

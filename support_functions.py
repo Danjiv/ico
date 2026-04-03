@@ -75,7 +75,8 @@ def repair_solution(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cos
 
 
 def test_lambdas(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cost: list[int],
-                    demand: list[int], n_customers: int, n_warehouses: int, range_lambdas: int) -> Tuple[np.array, float]: 
+                    demand: list[int], n_customers: int, n_warehouses: int,
+                      range_lambdas: int, best_lambda: bool,  LR_value: float) -> Tuple[np.array, float]: 
     """
     Idea is to test lambda values to pick a 'good' vector to start with
     Return this vector and the maximum found objective function value for the Lagrangian subproblem
@@ -95,6 +96,15 @@ def test_lambdas(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cost: 
         objective_function_val, x, y =  CWLP_subproblem_model(supply_cost_df, capacity, fixed_cost,
                                                                demand, n_customers, n_warehouses,
                                                                lambdas = test_lambdas)
+        # the best_lambda bool here refers to whether or not we should try to find the 'best', meaning
+        # largest value for the lagrangian within the parameters specified before continuing.
+        # best_lambda being false means within the specified lambda range, we stop as soon as 
+        # find any value that proves the integrality property does not hold.
+        # have added in the + 100 here as there is no gurantee the solver returns precisely
+        # the same value.
+        if best_lambda is False and objective_function_val > LR_value + 100:
+            return (test_lambdas)
+        
         delta.append(i+1)
         obj_vals.append(objective_function_val)
 
