@@ -103,7 +103,7 @@ def test_lambdas(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cost: 
         # have added in the + 100 here as there is no gurantee the solver returns precisely
         # the same value.
         if best_lambda is False and objective_function_val > LR_value + 100:
-            return (test_lambdas)
+            return (test_lambdas, objective_function_val)
         
         delta.append(i+1)
         obj_vals.append(objective_function_val)
