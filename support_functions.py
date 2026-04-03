@@ -75,7 +75,7 @@ def repair_solution(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cos
 
 
 def test_lambdas(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cost: list[int],
-                    demand: list[int], n_customers: int, n_warehouses: int) -> Tuple[np.array, float]: 
+                    demand: list[int], n_customers: int, n_warehouses: int, range_lambdas: int) -> Tuple[np.array, float]: 
     """
     Idea is to test lambda values to pick a 'good' vector to start with
     Return this vector and the maximum found objective function value for the Lagrangian subproblem
@@ -90,7 +90,7 @@ def test_lambdas(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cost: 
     obj_vals = []
     delta = []
 
-    for i in range(200):
+    for i in range(range_lambdas):
         test_lambdas = min_supply_cost + (max_supply_cost - min_supply_cost)/(i+1)
         objective_function_val, x, y =  CWLP_subproblem_model(supply_cost_df, capacity, fixed_cost,
                                                                demand, n_customers, n_warehouses,
@@ -107,7 +107,7 @@ def test_lambdas(supply_cost_df: pd.DataFrame, capacity: list[int], fixed_cost: 
 def solve_lagrangian_dual(supply_cost_df: pd.DataFrame, capacity: list[int],
                           fixed_cost: list[int], demand: list[int],
                           n_customers: int, n_warehouses: int,
-                          initial_lambdas = np.array)->Tuple[float, np.array, np.array, float, np.array, np.array]:
+                          initial_lambdas: np.array, alpha_half: int)->Tuple[float, np.array, np.array, float, np.array, np.array]:
     
     """
     Ideas here is to check the lagrangian for the initial lambda values, if optimal then return solution.
@@ -135,7 +135,7 @@ def solve_lagrangian_dual(supply_cost_df: pd.DataFrame, capacity: list[int],
     
     if check_if_solution_is_feasible(x, y, demand, capacity) is True:
         print("Optimal solution found before starting iteration...")
-        return(objective_function_val, x, y, objective_function_val, x, y)
+        return(objective_function_val, x, y, objective_function_val, x, y, 0, "dual was optimal for initial lambdas")
 
     # If the solution for the initial lambdas is not optimal, get a feasible solution and set initial
     # upper and lower bounds
@@ -169,7 +169,7 @@ def solve_lagrangian_dual(supply_cost_df: pd.DataFrame, capacity: list[int],
     alpha = 2
     subgradient_small = False
     dual_gap_small = False
-    max_iterations = 50
+    max_iterations = 200
     # max_computing_time is in seconds, so 300 equates to 5 minutes
     max_computing_time = 300
 
@@ -180,15 +180,15 @@ def solve_lagrangian_dual(supply_cost_df: pd.DataFrame, capacity: list[int],
         if iterations > max_iterations:
             print("We've reached the maximum number of iterations for solving the dual...")
             print("The best found solutions are...")
-            return(z_lb, z_lb_x, z_lb_y, z_ub, z_ub_x, z_ub_y)
+            return(z_lb, z_lb_x, z_lb_y, z_ub, z_ub_x, z_ub_y, iterations, "max iterations")
         
         if time.time() - start_time > max_computing_time:
             print("We've reached the maximum time limit for computing the dual...")
             print("The best found solution is...")
-            return(z_lb, z_lb_x, z_lb_y, z_ub, z_ub_x, z_ub_y)
+            return(z_lb, z_lb_x, z_lb_y, z_ub, z_ub_x, z_ub_y, iterations, "max computing time")
 
-        # halve the value of alpha every 10 iterations
-        if iterations % 10 == 0:
+        # halve the value of alpha every 'alpha_half' iterations
+        if iterations % alpha_half == 0:
             alpha = alpha/2
 
         #get the lagrangian subproblem solution for the given lambdas            
@@ -224,17 +224,17 @@ def solve_lagrangian_dual(supply_cost_df: pd.DataFrame, capacity: list[int],
             subgradient_small = True
             dual_gap_small = True
             print("Optimal solution found - reached both the subgradient tolerance and dual gap tolerance")
-            return(z_lb, z_lb_x, z_lb_y, z_ub, z_ub_x, z_ub_y) 
+            return(z_lb, z_lb_x, z_lb_y, z_ub, z_ub_x, z_ub_y, iterations, "reached subgradient tolerance and dual gap tolerance") 
 
         if subgradient_square_sum <= subgradient_tolerance:
             subgradient_small = True
             print("Optimal solution found - reached subgradient tolerance...")
-            return(z_lb, z_lb_x, z_lb_y, z_ub, z_ub_x, z_ub_y)  
+            return(z_lb, z_lb_x, z_lb_y, z_ub, z_ub_x, z_ub_y, iterations, "reached subgradient tolerance")  
 
         if dual_gap <= dual_gap_tolerance:
             dual_gap_small = True
             print("Optimal solution found - reached dual gap tolerance")
-            return(z_lb, z_lb_x, z_lb_y, z_ub, z_ub_x, z_ub_y)
+            return(z_lb, z_lb_x, z_lb_y, z_ub, z_ub_x, z_ub_y, iterations, "reached dual gap tolerance")
         
         print(f"iteration: {iterations}  Subgradient square sum: {subgradient_square_sum }  Dual Gap: {dual_gap}  Alpha: {alpha}")
         # if we haven't reached the above stopping criteria, update values for lambdas
